@@ -1,1 +1,3 @@
 A small piece of code that animates "buttons" like the Path application (http://path.com) does.
+
+Requires GJS >= 1.31.0
