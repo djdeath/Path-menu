@@ -24,6 +24,10 @@ const GObject = imports.gi.GObject;
 const Clutter = imports.gi.Clutter;
 const Mx = imports.gi.Mx;
 
+const ANIMATION_TIME = 200;
+const CHILDREN_NUMBER = 5;
+const CHILDREN_DELAY = 20;
+
 Clutter.init(null, null);
 
 stage = new Clutter.Stage({ color: new Clutter.Color({ red: 0,
@@ -41,7 +45,7 @@ stage.add_actor(plus);
 
 sub_items = new Array();
 
-for (var i = 0; i < 5; i++) {
+for (var i = 0; i < CHILDREN_NUMBER; i++) {
     var clone = new Clutter.Clone({ source: plus })
     sub_items.push(clone);
     stage.add_actor(clone);
@@ -59,7 +63,7 @@ plus.connect('button-press-event', Lang.bind(this, function(event) {
 
     // Animate main button
     plus.animatev(Clutter.AnimationMode.EASE_OUT_QUAD,
-                  250,
+                  ANIMATION_TIME,
                   ["rotation-angle-z"],
                   [angle]);
 
@@ -71,17 +75,17 @@ plus.connect('button-press-event', Lang.bind(this, function(event) {
 
         if (opened) {
             animation = child.animatev(Clutter.AnimationMode.EASE_OUT_BACK,
-                                       250,
+                                       ANIMATION_TIME,
                                        ["x", "y"],
                                        [10 + Math.cos (angle) * 350,
                                         stage.get_height() - plus.get_height() - 10 + Math.sin (angle) * 350]);
-            animation.timeline.delay = i * 25;
+            animation.timeline.delay = i * CHILDREN_DELAY;
         } else {
             animation = child.animatev(Clutter.AnimationMode.EASE_IN_BACK,
-                                       250,
+                                       ANIMATION_TIME,
                                        ["x", "y"],
                                        [10, stage.get_height() - plus.get_height() - 10]);
-            animation.timeline.delay = (sub_items.length - i - 1) * 25;
+            animation.timeline.delay = (sub_items.length - i - 1) * CHILDREN_DELAY;
         }
         animation.timeline.stop();
         animation.timeline.start();
