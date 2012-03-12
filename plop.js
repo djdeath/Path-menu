@@ -30,9 +30,10 @@ const CHILDREN_DELAY = 20;
 
 Clutter.init(null, null);
 
-stage = new Clutter.Stage({ color: new Clutter.Color({ red: 0,
-                                                       green: 0,
-                                                       blue: 0 }) });
+var stage = new Clutter.Stage({ color: new Clutter.Color({ red: 0,
+                                                           green: 0,
+                                                           blue: 0 }) });
+stage.set_user_resizable(true);
 
 var plus = new Clutter.Texture({ reactive: true });
 plus.set_from_file("./plop.png");
@@ -43,7 +44,7 @@ plus.rotation_center_z = new Clutter.Vertex({
 });
 stage.add_actor(plus);
 
-sub_items = new Array();
+var sub_items = new Array();
 
 for (var i = 0; i < CHILDREN_NUMBER; i++) {
     var clone = new Clutter.Clone({ source: plus })
@@ -55,6 +56,21 @@ for (var i = 0; i < CHILDREN_NUMBER; i++) {
 var opened = false;
 
 // Open / Close animations
+function _get_angle(child, children)
+{
+    return (-Math.PI / 2) + (child / (children - 1)) * (Math.PI / 2);
+}
+
+function _get_child_final_pos_x(child, children)
+{
+    return 10 + Math.cos(_get_angle(child, children)) * 350;
+}
+
+function _get_child_final_pos_y(child, children)
+{
+    return stage.get_height() - plus.get_height() - 10 + Math.sin(_get_angle(child, children)) * 350;
+}
+
 plus.connect('button-press-event', Lang.bind(this, function(event) {
     var angle = 0;
     if (!opened)
@@ -69,7 +85,6 @@ plus.connect('button-press-event', Lang.bind(this, function(event) {
 
     // Animate childrens
     for (var i = 0; i < sub_items.length; i++) {
-        var angle = (-Math.PI / 2) + (i / (sub_items.length - 1)) * (Math.PI / 2);
         var child = sub_items[i];
         var animation = null;
 
@@ -77,8 +92,8 @@ plus.connect('button-press-event', Lang.bind(this, function(event) {
             animation = child.animatev(Clutter.AnimationMode.EASE_OUT_BACK,
                                        ANIMATION_TIME,
                                        ["x", "y"],
-                                       [10 + Math.cos (angle) * 350,
-                                        stage.get_height() - plus.get_height() - 10 + Math.sin (angle) * 350]);
+                                       [_get_child_final_pos_x(i, sub_items.length),
+                                        _get_child_final_pos_y(i, sub_items.length)]);
             animation.timeline.delay = i * CHILDREN_DELAY;
         } else {
             animation = child.animatev(Clutter.AnimationMode.EASE_IN_BACK,
@@ -95,10 +110,12 @@ plus.connect('button-press-event', Lang.bind(this, function(event) {
 // Reposition stuff according to stage's size
 stage.connect('allocation-changed', Lang.bind(this, function(box) {
     plus.set_position(10, stage.get_height() - plus.get_height() - 10);
-    if (!opened) {
-        for (var i = 0; i < sub_items.length; i++) {
+    for (var i = 0; i < sub_items.length; i++) {
+        if (opened)
+            sub_items[i].set_position(_get_child_final_pos_x(i, sub_items.length),
+                                      _get_child_final_pos_y(i, sub_items.length));
+        else
             sub_items[i].set_position(10, stage.get_height() - plus.get_height() - 10);
-        }
     }
 }));
 
